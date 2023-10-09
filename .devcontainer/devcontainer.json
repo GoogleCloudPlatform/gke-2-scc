@@ -1,0 +1,55 @@
+{
+    "name": "gke-2-scc-devcontainer",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "ms-azuretools.vscode-docker",
+                "hashicorp.terraform",
+                "hashicorp.hcl",
+                "quicktype.quickt",
+                // "googlecloudtools.cloudcode", // not supported on arm based machines
+                "esbenp.prettier-vscode",
+                "MarkLarah.pre-commit-vscode",
+                "ms-python.python",
+                "vue.vscode-typescript-vue-plugin",
+                "toba.vsfire",
+                "vue.volar"
+            ],
+            "settings": {
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.shell.linux": {
+                    "zsh": {
+                        "path": "zsh"
+                      }
+                }
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:1": {
+            "version": "latest",
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "upgradePackages": true,
+            "username": "vscode"
+        },
+        "ghcr.io/devcontainers/features/terraform:1.3.4": {
+            "version": "1.5.7",
+            "terragrunt": "0.51.9",
+            "installTerraformDocs": true
+        },
+        "ghcr.io/devcontainers/features/go:1.2": {
+            "version": "1.19"
+        }
+    },
+    "postStartCommand": {
+        "setAliases": "echo '' >> /home/vscode/.zshrc && cat ./scripts/aliases.sh >> /home/vscode/.zshrc && source /home/vscode/.zshrc",
+        "setupGitHooks": "cp ./scripts/git-hooks/* ./.git/hooks/",
+        "addGitSafeDirectory": "git config --global --add safe.directory /workspaces/gke-2-scc"
+    }
+}
