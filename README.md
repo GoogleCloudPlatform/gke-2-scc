@@ -65,7 +65,7 @@ gcloud auth login --update-adc
 # Generate the Terraform plan and review before deploying into your project
 terragrunt run-all plan -refresh=false
 
-# Deploy the web App
+# Deploy the integration
 terragrunt run-all apply -refresh=false
 ```
 
