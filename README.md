@@ -51,17 +51,20 @@ devcontainer build && devcontainer open
 
 # Log in to gcloud cli to authenticate Terraform
 gcloud auth login --update-adc
+```
 
-# Modify config.yml and include the project IDs and regions for your `terraformState` (where your TF state will be stored) and `prod` projects (where your resources will be deployed). Note that these can be the same project
+  - Modify [config.yml](./config.yml) and include the project IDs and regions for your `terraformState` (where your TF state will be stored) and `prod` (where your resources will be deployed) projects. Note that these can be the same project
 
-# Modify the module inputs in config.yml for .prod.spec.scc-integration
-#   please see /modules/scc-integration/README.md#Inputs for available inputs
-# At a minimum, you must specify .prod.spec.scc-integration.organization_id which can be retrieved with the following gcloud command: `gcloud projects get-ancestors $YOUR_PROJECT_ID`
+  - Modify the module inputs in config.yml for [.prod.spec.scc-integration](./config.yml#L24)
+    - Please see [./modules/scc-integration/README.md#Inputs](./modules/scc-integration/README.md#Inputs) for available inputs
+    - At a minimum, you must specify [.prod.spec.scc-integration.organization_id](./config.yml#L25), which can be retrieved with the following gcloud command: 
+      - `gcloud projects get-ancestors $YOUR_PROJECT_ID`
+
+    - The default value for [.prod.spec.scc-integration.log_streaming_filter](./config.yml#L26) will stream `kubectl exec` events into SCC. You can modify this filter to include whatever logs / events you'd like. To see which GKE control plane logs are available, navigate to [https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22](https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22)
   
-# The default log_streaming_filter will stream `kubectl exec` events. You can modify this filter to include whatever logs you'd like. To see which GKE control plane logs are available, navigate to https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22
-  
-# The findings_config list describes how to map particular API calls (methods) to the GKE control plane into SCC findings. This allows you to specify how to categorize your findings, as well optionally mark the severity of the finding. The severity field must be one of LOW, MEDIUM, HIGH, CRITICAL, or omitted (null)
+    - The [findings_config](./config.yml#L27) list defines how to map particular API calls (methods) to the GKE control plane into SCC findings. This allows you to specify how to categorize your findings, as well optionally mark the severity of the finding. The severity field must be one of LOW, MEDIUM, HIGH, CRITICAL, or omitted (null)
 
+``` bash
 # Generate the Terraform plan and review before deploying into your project
 terragrunt run-all plan -refresh=false
 
