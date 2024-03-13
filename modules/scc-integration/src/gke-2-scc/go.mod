@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/securitycenter v1.23.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.6.1
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
