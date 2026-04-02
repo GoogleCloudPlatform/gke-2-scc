@@ -17,7 +17,7 @@ output "pubsub_topic" {
   value       = google_pubsub_topic.log_streaming.id
 }
 
-output "logging_org_sink" {
+output "log_sink" {
   description = "The Org sink for log streaming"
-  value       = google_logging_organization_sink.gke_events.id
+  value       = local.log_sink_id
 }

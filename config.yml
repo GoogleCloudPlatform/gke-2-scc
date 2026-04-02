@@ -16,23 +16,26 @@ terraformState:
   projectId: ""
   region: us-central1
 
-prod:
-  projectId: ""
-  region: us-central1
-  spec:
-    # please see /modules/scc-integration/README.md#Inputs for all documented module inputs
-    scc-integration:
-      organization_id: ""
-      log_streaming_filter: "protoPayload.methodName=\"io.k8s.core.v1.pods.exec.create\" AND operation.last=true"
-      findings_config:
-        - method: "io.k8s.core.v1.pods.exec.create"
-          category: "KUBECTL_EXEC"
-          severity: "HIGH"
-        - method: "DEFAULT"
-          category: "NO_CATEGORY_SPECIFIED"
-      integration_config:
-        available_memory: "128Mi"
-        available_cpu: "1"
-        timeout_seconds: 10
-        max_instance_count: 5
-        max_instance_request_concurrency: 100
+inputs:
+  prod:
+    projectId: ""
+    region: us-central1
+    modules:
+      # please see /modules/scc-integration/README.md#Inputs for all documented module inputs
+      scc-integration:
+        log_sync_type: "PROJECT" # Must be either PROJECT or ORGANIZATION (default: ORGANIZATION)
+        organization_id: ""
+        log_streaming_filter: |
+          protoPayload.serviceName="connectgateway.googleapis.com" AND labels."k8s-request-path"=~".*\/exec\?command=.*" and operation.first = true
+        findings_config:
+          - method: "google.cloud.gkeconnect.gateway.v1.GatewayService.Stream"
+            category: "KUBECTL_EXEC"
+            severity: "HIGH"
+          - method: "DEFAULT"
+            category: "NO_CATEGORY_SPECIFIED"
+        integration_config:
+          available_memory: "128Mi"
+          available_cpu: "1"
+          timeout_seconds: 10
+          max_instance_count: 5
+          max_instance_request_concurrency: 100

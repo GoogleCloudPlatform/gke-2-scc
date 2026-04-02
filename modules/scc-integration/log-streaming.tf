@@ -54,7 +54,13 @@ resource "google_pubsub_topic" "log_streaming" {
   name = "gke-2-scc-log-streaming-${local.random_id}"
 }
 
+locals {
+  log_streaming_filter = var.log_streaming_filter
+}
+
 resource "google_logging_organization_sink" "gke_events" {
+  count = var.log_sync_type == "ORGANIZATION" ? 1 : 0
+
   name        = "gke-2-scc-log-streaming-${local.random_id}"
   description = "Logging Sink used to stream k8s.io events into Security Command Center"
 
@@ -63,7 +69,25 @@ resource "google_logging_organization_sink" "gke_events" {
 
   destination = "pubsub.googleapis.com/${google_pubsub_topic.log_streaming.id}"
 
-  filter = var.log_streaming_filter
+  filter = local.log_streaming_filter
+}
+
+resource "google_logging_project_sink" "gke_events" {
+  count = var.log_sync_type == "PROJECT" ? 1 : 0
+
+  name = "gke-2-scc-log-streaming-${local.random_id}"
+
+  destination = "pubsub.googleapis.com/${google_pubsub_topic.log_streaming.id}"
+
+  filter = local.log_streaming_filter
+
+  # Use a unique writer (creates a unique service account used for writing)
+  unique_writer_identity = true
+}
+
+locals {
+  log_sink_identity = var.log_sync_type == "ORGANIZATION" ? google_logging_organization_sink.gke_events[0].writer_identity : var.log_sync_type == "FOLDER" ? null : var.log_sync_type == "PROJECT" ? google_logging_project_sink.gke_events[0].writer_identity : null
+  log_sink_id       = var.log_sync_type == "ORGANIZATION" ? google_logging_organization_sink.gke_events[0].id : var.log_sync_type == "FOLDER" ? null : var.log_sync_type == "PROJECT" ? google_logging_project_sink.gke_events[0].id : null
 }
 
 resource "google_project_iam_member" "logging_sa" {
@@ -71,7 +95,7 @@ resource "google_project_iam_member" "logging_sa" {
 
   project = local.project_id
   role    = each.value
-  member  = google_logging_organization_sink.gke_events.writer_identity
+  member  = local.log_sink_identity
 }
 
 resource "google_eventarc_trigger" "gke-cp-events" {
@@ -91,7 +115,7 @@ resource "google_eventarc_trigger" "gke-cp-events" {
     }
   }
 
-  # Since Cloud Functions v2 is powered by Cloud Run, we can target/invoke the GCF as a Cloud Run services
+  # Since Cloud Functions v2 is powered by Cloud Run, we can target/invoke the GCF as a Cloud Run service
   destination {
     cloud_run_service {
       region  = google_cloudfunctions2_function.gke_2_scc_func.location

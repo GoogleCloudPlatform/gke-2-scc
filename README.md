@@ -22,6 +22,8 @@ Here are some specific examples of how customers can benefit from streaming audi
 - `roles/owner` 
 - `roles/orgpolicy.policyAdmin` _(if you need to disable org policies)_
 
+## Required permissions to view sensitive logs
+- `roles/logging.privateLogViewer`
 
 ## Dependencies (to run the devcontainer)
 - `VS Code`
@@ -39,38 +41,41 @@ Here are some specific examples of how customers can benefit from streaming audi
 - `terraform-docs`
 
 ## Required GCP APIs
-All GCP APIs required for this solution are documented in [./live/shared.hcl](./live/shared.hcl#L15). By default, `terragrunt run-all apply` will enable each of these APIs
+All GCP APIs required for this solution are documented in [./live/shared.hcl](./live/shared.hcl#L15). By default, `terragrunt run --all -- apply` will enable each of these APIs
 
 ## Organization Policies
-The Org Policy constraints which could prevent this solution from being deployed are documented in [./live/shared.hcl](./live/shared.hcl). If your deployment is being blocked, set `skip = false` [./live/prod/org-policies/terragrunt.hcl#L15](./live/prod/org-policies/terragrunt.hcl#L15) and rerun `terragrunt run-all apply -refresh=false`. Please note that you must have permissions to remove Orgnization Policies from your project in order for this to work.
+The Org Policy constraints which could prevent this solution from being deployed are documented in [./live/shared.hcl](./live/shared.hcl). If your deployment is being blocked, set `exclude.no_run = false` [./live/prod/org-policies/terragrunt.hcl#L18](./live/prod/org-policies/terragrunt.hcl#L18) and rerun `terragrunt run --all -- apply -refresh=false`. Please note that you must have permissions to remove Orgnization Policies from your project in order for this to work.
 
 ## How to deploy
 ```bash
 # Build and start the VS Code devcontainer which includes all the required tooling to depoy
 devcontainer build && devcontainer open
 
-# Log in to gcloud cli to authenticate Terraform
-gcloud auth login --update-adc
+# Once the devcontainer starts, you'll be prompted to authenticate the gcloud CLI
 ```
 
-  - Modify [config.yml](./config.yml) and include the project IDs and regions for your `terraformState` (where your TF state will be stored) and `prod` (where your resources will be deployed) projects. Note that these can be the same project
+  - Modify [config.yml](./config.yml) and include the project IDs and regions for your `terraformState` (where your TF state will be stored) and `.inputs.prod` (where your resources will be deployed) projects. Note that these can be the same project
 
-  - Modify the module inputs in config.yml for [.prod.spec.scc-integration](./config.yml#L24)
+  - Modify the module inputs in config.yml for [inputs.prod.modules.scc-integration](./config.yml#L25)
     - Please see [./modules/scc-integration/README.md#Inputs](./modules/scc-integration/README.md#Inputs) for available inputs
-    - At a minimum, you must specify [.prod.spec.scc-integration.organization_id](./config.yml#L25), which can be retrieved with the following gcloud command: 
-      - `gcloud projects get-ancestors $YOUR_PROJECT_ID`
+    - At a minimum, you must specify [.inputs.prod.modules.scc-integration.organization_id](./config.yml#L26), which can be retrieved with the following gcloud command: 
+      - `gcloud projects get-ancestors $(gcloud config get-value project) --format=json | jq -r '.[] | select(.type == "organization") | .id'`
 
-    - The default value for [.prod.spec.scc-integration.log_streaming_filter](./config.yml#L26) will stream `kubectl exec` events into SCC. You can modify this filter to include whatever logs / events you'd like. To see which GKE control plane logs are available, navigate to [https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22](https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22)
+    - The default value for [.inputs.prod.modules.scc-integration.log_streaming_filter](./config.yml#L27) will stream `kubectl exec` via Connect Gateway events into SCC. You can modify this filter to include whatever logs / events you'd like. To see which GKE control plane logs are available, navigate to [https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22](https://console.cloud.google.com/logs/query;query=protoPayload.serviceName%3D%22k8s.io%22)
   
-    - The [findings_config](./config.yml#L27) list defines how to map particular API calls (methods) to the GKE control plane into SCC findings. This allows you to specify how to categorize your findings, as well optionally mark the severity of the finding. The severity field must be one of LOW, MEDIUM, HIGH, CRITICAL, or omitted (null)
+    - The [findings_config](./config.yml#L28) list defines how to map particular API calls (methods) to the GKE control plane into SCC findings. This allows you to specify how to categorize your findings, as well optionally mark the severity of the finding. The severity field must be one of LOW, MEDIUM, HIGH, CRITICAL, or omitted (null)
 
 ``` bash
 # Generate the Terraform plan and review before deploying into your project
-terragrunt run-all plan -refresh=false
+terragrunt run --all -- plan -refresh=false
 
 # Deploy the integration
-terragrunt run-all apply -refresh=false
+terragrunt run -all -- apply -refresh=false
 ```
+
+## Cluster Configuration
+Note that you cluster must have enabled API Server logs in order for this log to propagate into Cloud Logging.
+![API Server Logs](assets/api-server-logs.png "API Server Logs")
 
 ## Architecture
 ![Architecture](assets/gke-2-sccp-log-sink.drawio.png "Architecture")
@@ -79,3 +84,6 @@ terragrunt run-all apply -refresh=false
 ![Kubectl Exec Finding](assets/scc-screenshot.png "Kubectl Exec Finding")
 ![Kubectl Exec Finding 2](assets/scc-screenshot-2.png "Kubectl Exec Finding 2")
 ![Kubectl Exec Finding](assets/scc-screenshot-3.png "Kubectl Exec Finding 3")
+
+## Terraform Module Dependencies
+![TF Module Dependencies](assets/module-dependenceis.png "TF Module Dependencies")

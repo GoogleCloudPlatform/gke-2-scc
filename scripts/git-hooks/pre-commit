@@ -15,8 +15,14 @@
 # limitations under the License.
 
 # Format Terraform 
-terragrunt hclfmt
+terragrunt hcl fmt
 terraform fmt -recursive 
+
+# Format and tidy go
+find ./modules -type f -name "*.go" | xargs -I {} dirname {} | sort -u | while read -r dir; do
+  echo "Running 'go fmt' on $dir"
+  (cd "$dir" && go fmt && go mod tidy)
+done
 
 # Keep module docs up to date
 for d in modules/*; do
@@ -24,3 +30,6 @@ for d in modules/*; do
     git add "./$d/README.md"
   fi
 done
+
+# Generate Terragrunt / Terraform module dependecy graph
+terragrunt dag graph  | dot -Tpng > assets/module-dependenceis.png

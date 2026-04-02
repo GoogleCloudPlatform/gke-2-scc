@@ -1,5 +1,4 @@
-  
-# Copyright 2023 Google LLC
+# Copyright 2024 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +15,52 @@
 # Terragrunt & Terraform aliases
 alias tf="terraform"
 alias tg="terragrunt"
-alias tginit="terragrunt init --terragrunt-working-dir"
-alias tgval="terragrunt validate --terragrunt-working-dir"
-alias tgconsole="terragrunt console --terragrunt-working-dir"
+
+tginit() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- init 
+}
+
+tgval() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- validate 
+}
+
+
+tgconsole() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- console 
+}
 alias tgcon="tgconsole"
-alias tgtaint="terragrunt taint --terragrunt-working-dir"
-alias tgplan="terragrunt plan --terragrunt-working-dir"
-alias tgapply="terragrunt apply --terragrunt-working-dir"
-alias tgdestroy="terragrunt destroy --terragrunt-working-dir"
-alias glogin="gcloud auth login --update-adc"
+
+tgtaint() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- taint  
+}
+
+tgplan() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- plan  
+}
+
+tgapply() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- apply  
+}
+
+tgdestroy() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- destroy  
+}
+
+tgout() {
+    DIR="$1"
+    terragrunt run --working-dir ${DIR} -- out  
+}
+
+alias glogin="gcloud auth login --update-adc --no-launch-browser"
+alias tffmt="terragrunt hcl fmt hclfmt && terraform fmt -recursive"
+alias k="kubectl"
 
 tgswitch() {
     DIR="$1"
@@ -35,5 +71,12 @@ tgswitch() {
         (cd $1; tfswitch)
     fi
 }
-  
-  
+
+cd-repo-root() {
+    while [[ ! -d ./.git ]]
+    do
+        cd ..
+    done
+}
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:/usr/local/google-cloud-sdk/bin:$PATH"

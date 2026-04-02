@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-skip = true
+exclude {
+  if      = true
+  actions = ["plan", "apply", "destroy"]
+  no_run  = true
+}
 
 include "common" {
   path = find_in_parent_folders("common.hcl")
@@ -26,10 +30,14 @@ dependencies {
 
 locals {
   common_vars = read_terragrunt_config(find_in_parent_folders("shared.hcl"))
+  config      = yamldecode(file("${get_repo_root()}/config.yml"))
+  moduleName  = basename(path_relative_to_include())
+  environment = basename(abspath("${path_relative_to_include()}/../"))
+  envConfig   = local.config.inputs[local.environment]
 }
 
 terraform {
-  source = "${get_repo_root()}/modules/org-policies"
+  source = "${get_repo_root()}/modules/${local.moduleName}"
 
   after_hook "allow_org_policy_propagation" {
     commands     = ["apply"]

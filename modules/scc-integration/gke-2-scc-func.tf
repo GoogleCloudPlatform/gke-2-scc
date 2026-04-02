@@ -90,7 +90,7 @@ resource "google_cloudfunctions2_function" "gke_2_scc_func" {
   description = "Cloud Function to stream GKE Audit Log events into Security Command Center"
 
   build_config {
-    runtime     = "go119"
+    runtime     = "go126"
     entry_point = "Handler" # Set the entry point 
     source {
       storage_source {

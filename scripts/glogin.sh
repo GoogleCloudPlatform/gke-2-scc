@@ -14,14 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function conditional_login() {
+function conditional_google_login() {
     CURRENT_USER=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
     if [[ $CURRENT_USER == "" ]]
     then
+        gcloud auth revoke --all
         gcloud auth login --update-adc --no-launch-browser
     else
         echo "Logged in as ${CURRENT_USER}"
     fi
 }
 
-conditional_login
+function google_docker_login() {
+    gcloud auth configure-docker --quiet
+}
+
+conditional_google_login
+if [[ ${DEVCONTAINER_MODE} == "CONTRIBUTOR" ]]; then
+    google_docker_login
+fi
+

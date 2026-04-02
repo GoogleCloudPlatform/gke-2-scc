@@ -1,6 +1,6 @@
 module github.com/googlecloudplatform/gke-2-scc/modules/scc-integration/src/gke-2-scc
 
-go 1.19
+go 1.26
 
 require (
 	cloud.google.com/go/securitycenter v1.23.0

@@ -20,7 +20,14 @@ RUN curl -sSL https://sdk.cloud.google.com > /tmp/gcl && \
 
 ENV PATH $PATH:/usr/local/google-cloud-sdk/bin
 
-RUN gcloud --quiet components install beta alpha
-RUN apt install -y jq
+RUN gcloud --quiet components install \
+    beta \
+    alpha \
+    gke-gcloud-auth-plugin
+
+RUN apt update
+RUN apt install -y \
+    jq \
+    graphviz
 
 USER vscode

@@ -15,27 +15,27 @@
 terraform {
   required_providers {
     google = {
-      version = "~> 4.78.0"
+      version = "~> 7.26.0"
       source  = "hashicorp/google"
     }
     google-beta = {
-      version = "~> 4.78.0"
+      version = "~> 7.26.0"
       source  = "hashicorp/google-beta"
     }
     local = {
-      version = "~> 2.4.0"
+      version = "~> 2.7.0"
       source  = "hashicorp/local"
     }
     archive = {
-      version = "~> 2.4.0"
+      version = "~> 2.7.0"
       source  = "hashicorp/archive"
     }
     random = {
-      version = "~> 3.5.0"
+      version = "~> 3.8.1"
       source  = "hashicorp/random"
     }
   }
-  required_version = "~> 1.5"
+  required_version = "~> 1.14"
 }
 
 resource "random_id" "id" {

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-skip = true
-
 locals {
-  config    = yamldecode(file("${get_repo_root()}/config.yml"))
-  envConfig = local.config[basename(dirname("${get_terragrunt_dir()}../../"))]
+  config          = yamldecode(file("${get_repo_root()}/config.yml"))
+  terraformConfig = local.config.terraformState
+  environment     = basename(abspath("${path_relative_to_include()}/../"))
+  envConfig       = local.config.inputs[local.environment]
 }
 
 remote_state {
@@ -26,9 +26,9 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
   config = {
-    project  = local.config.terraformState["projectId"]
-    location = local.config.terraformState["region"]
-    bucket   = "${local.config.terraformState["projectId"]}-tf-state"
+    project  = local.terraformConfig["projectId"]
+    location = local.terraformConfig["region"]
+    bucket   = "${local.terraformConfig["projectId"]}-tf-state"
     prefix   = "terraform/state/gke-2-scc/${path_relative_to_include()}"
   }
 }

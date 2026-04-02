@@ -13,7 +13,7 @@
 # limitations under the License.
 
 locals {
-  access_token     = data.google_client_config.current.access_token
+  # access_token     = data.google_client_config.current.access_token
   project_id       = data.google_project.this.project_id
   region           = data.google_client_config.current.region
   formatted_region = local.region == "us-central1" || local.region == "europe-west1" ? substr(local.region, 0, length(local.region) - 1) : local.region

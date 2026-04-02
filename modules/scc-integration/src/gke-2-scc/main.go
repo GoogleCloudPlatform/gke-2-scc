@@ -31,6 +31,8 @@ import (
 
 	securitycenter "cloud.google.com/go/securitycenter/apiv1"
 	"cloud.google.com/go/securitycenter/apiv1/securitycenterpb"
+
+	"github.com/googlecloudplatform/gke-2-scc/modules/scc-integration/src/gke-2-scc/internal/logging"
 )
 
 // MessagePublishedData contains the full Pub/Sub message
@@ -122,7 +124,10 @@ func init() {
 	findingConfigEncoded := os.Getenv("SCC_FINDING_CONFIG")
 	json.Unmarshal([]byte(findingConfigEncoded), &findingConfig)
 
-	fmt.Printf("SourceId: %s", sourceId)
+	fmt.Println(logging.LogEntry{
+		Severity: "INFO",
+		Message:  fmt.Sprintf("SourceId: %s", sourceId),
+	})
 	functions.CloudEvent("Handler", handler)
 }
 
@@ -143,14 +148,20 @@ func handler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("event.DataAs: %w", err)
 	}
 
-	fmt.Println(string(msg.Message.Data))
+	fmt.Println(logging.LogEntry{
+		Severity: "INFO",
+		Message:  string(msg.Message.Data),
+	})
 
 	if err := json.Unmarshal(msg.Message.Data, &event); err != nil {
 		log.Printf("data json.NewDecoder: %v", err)
 		return err
 	}
 
-	fmt.Printf("%+v\n", *event)
+	fmt.Println(logging.LogEntry{
+		Severity: "INFO",
+		Message:  fmt.Sprintf("%+v", *event),
+	})
 
 	err := createFindingWithProperties(event)
 	if err != nil {
@@ -176,7 +187,10 @@ func createFindingWithProperties(l *AuditLog) error {
 	h := md5.Sum([]byte(fid))
 	fidsum := hex.EncodeToString(h[:])
 
-	fmt.Println(fidsum)
+	fmt.Println(logging.LogEntry{
+		Severity: "INFO",
+		Message:  fmt.Sprintf("fidsum: %s", fidsum),
+	})
 
 	fconfig := GetFindingConfigForMethod(l.ProtoPayload.MethodName)
 	req := &securitycenterpb.CreateFindingRequest{
@@ -221,7 +235,10 @@ func createFindingWithProperties(l *AuditLog) error {
 		return fmt.Errorf("CreateFinding: %w", err)
 	}
 
-	fmt.Printf("New finding created: %s => %s\n", finding.Name, req.String())
+	fmt.Println(logging.LogEntry{
+		Severity: "INFO",
+		Message:  fmt.Sprintf("New finding created: %s => %s", finding.Name, req.String()),
+	})
 
 	return nil
 }

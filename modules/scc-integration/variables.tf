@@ -15,6 +15,11 @@
 variable "organization_id" {
   description = "The ID of your Google Cloud Organization"
   type        = string
+
+  validation {
+    condition     = var.organization_id != ""
+    error_message = "The organization_id variable cannot be an empty string."
+  }
 }
 
 variable "integration_config" {
@@ -32,6 +37,18 @@ variable "source_name" {
   description = "Override the name of the SCC Source that will be created "
   type        = string
   default     = "gke2scc"
+}
+
+variable "log_sync_type" {
+  description = "Whether to create the log sync at the Project, Folder, or Organization level"
+  type        = string
+
+  validation {
+    condition     = can(regex("^PROJECT|ORGANIZATION$", var.log_sync_type))
+    error_message = "log_sync_type must be one of PROJECT, ORGANIZATION"
+  }
+
+  default = "PROJECT"
 }
 
 variable "log_streaming_filter" {

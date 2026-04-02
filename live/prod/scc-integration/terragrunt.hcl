@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-skip = false
-
 include "common" {
   path = find_in_parent_folders("common.hcl")
 }
@@ -21,7 +19,9 @@ include "common" {
 locals {
   common_vars = read_terragrunt_config(find_in_parent_folders("shared.hcl"))
   config      = yamldecode(file("${get_repo_root()}/config.yml"))
-  envConfig   = local.config[basename(dirname("${get_terragrunt_dir()}../../"))]
+  moduleName  = basename(path_relative_to_include())
+  environment = basename(abspath("${path_relative_to_include()}/../"))
+  envConfig   = local.config.inputs[local.environment]
 }
 
 dependencies {
@@ -32,7 +32,7 @@ dependencies {
 }
 
 terraform {
-  source = "${get_repo_root()}/modules/scc-integration"
+  source = "${get_repo_root()}/modules/${local.moduleName}"
 }
 
-inputs = local.envConfig.spec["scc-integration"]
+inputs = local.envConfig.modules[local.moduleName]
